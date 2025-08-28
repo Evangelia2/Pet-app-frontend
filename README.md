@@ -1,35 +1,31 @@
-# ds-lab-2023-frontend
+# PetApp DevOps Project
 
-This template should help get you started developing with Vue 3 in Vite.
+> **VMs:**
 
-## Recommended IDE Setup
+- `appserver` → φιλοξενεί το backend application  
+- `dbserver` → φιλοξενεί τη βάση PostgreSQL  
+- `jenkinsserver` → φιλοξενεί το Jenkins για CI/CD και εκτέλεση Ansible playbooks  
+- `dockerserver` → VM για Docker-specific deployments  
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+---
+- vagrant up {name of vm}  
+- Το jenkinsserver χρειάζεται χειροκίνητη εγκατάσταση των απαραίτητων packages.  
+- Για να επιτρέψουμε στο Jenkins να συνδέεται μέσω SSH σε άλλα VMs (πρέπει να είμαστε μέσα στον φάκελο που περιέχει το vagrantfile) : cat .vagrant/machines/{name of the vm}/virtualbox/private_key  
+- vagrant ssh jenkinsserver  
+- Σύνδεση ως χρήστης jenkins με: sudo su - jenkins  
+- Δημιουργία φακέλου: mkdir -p ~/.keys  
+- Δημιουργία αρχείου για κάθε key(μέσα στον φάκελο ~/.keys): touch {name of the vm}.key  
+- Ρύθμιση δικαιωμάτων: chmod 600 {name of the vm}.key  
+- Δημιουργία αρχείου config: mkdir -p ~/.ssh  
+- Μέσα στο config βάζω:   
+        Host {name of the vm}  
+            HostName  {IP of the vm}  
+            User vagrant  
+            IdentityFile /var/lib/jenkins/.keys/{name of the vm}.key  
+            StrictHostKeyChecking no  
+            UserKnownHostsFile /dev/null  
+            LogLevel FATAL  
+- Ανοίγμα browser http://<jenkinsserver_ip>:8080 (http://192.168.56.120:8080/)  
+- Έυρεση password: sudo cat /var/lib/jenkins/secrets/initialAdminPassword  
+- Δημιουργία pipeline job στο ansible.Jenkinsfile και εκτέλεση  
+- Άνοιγμα browser http://<ip_of_vm>:9000  

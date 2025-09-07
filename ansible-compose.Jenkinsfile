@@ -13,16 +13,16 @@ pipeline {
         stage('test connection to deploy env') {
         steps {
             sh '''
-                ansible -i ~/workspace/ansible/hosts.yaml -m ping docker-vm
+                ansible -i ~/workspace/ansible/hosts.yaml -m ping appserver-vm,dbserver-vm
             '''
             }
         }
         
-        stage('Install spring & postgres through docker_compose') {
+        stage('Install postgres') {
             steps {
                 sh '''
                     export ANSIBLE_CONFIG=~/workspace/ansible/ansible.cfg
-                    ansible-playbook -i ~/workspace/ansible/hosts.yaml -l docker-vm ~/workspace/ansible/playbooks/spring-docker.yaml
+                    ansible-playbook -i ~/workspace/ansible/hosts.yaml -l appserver-vm ~/workspace/ansible/playbooks/spring-vue-docker.yaml
                 '''
             }
         }

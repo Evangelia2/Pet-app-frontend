@@ -1,50 +1,23 @@
 pipeline {
-
     agent any
 
-    parameters {
-        booleanParam(name: 'INSTALL_POSTGRES', defaultValue: true, description: 'Install PostgreSQL')
-        booleanParam(name: 'INSTALL_SPRING', defaultValue: true, description: 'Install Spring Boot app')
-    }
-
     stages {
-    
-        stage('run ansible pipeline') {
+        stage('Checkout SCM') {
             steps {
-                build job: 'ansible'
+                git branch: 'main', url: 'https://github.com/<username>/<repository>.git'
             }
         }
 
-        stage('test connection to deploy env') {
-        steps {
-            sh '''
-                ansible -i ~/workspace/ansible/hosts.yaml -m ping appserver-vm,dbserver-vm
-            '''
-            }
-        }
-        
-        stage('Install postgres') {
-             when {
-                expression { return params.INSTALL_POSTGRES }
-            }
+        stage('Run Ansible') {
             steps {
-                sh '''
-                    export ANSIBLE_CONFIG=~/workspace/ansible/ansible.cfg
-                    ansible-playbook -i ~/workspace/ansible/hosts.yaml -l dbserver-vm ~/workspace/ansible/playbooks/postgres.yaml
-                '''
+                sh 'ansible-playbook -i inventory.ini ansible-compose.yml'
             }
         }
 
-        stage('install springboot') {
-             when {
-                expression { return params.INSTALL_SPRING }
-            }
+        stage('Verify Deployment') {
             steps {
-                sh '''
-                    export ANSIBLE_CONFIG=~/workspace/ansible/ansible.cfg
-                    ansible-playbook -i ~/workspace/ansible/hosts.yaml -l appserver-vm ~/workspace/ansible/playbooks/spring.yaml
-                '''
+                sh 'curl -f http://192.168.56.101:8080 || exit 1'
             }
         }
-}
+    }
 }
